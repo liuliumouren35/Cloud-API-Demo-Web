@@ -6,8 +6,8 @@ export const CURRENT_CONFIG = {
   appLicense: 'Please enter the app license.', // You need to go to the development website to apply.
 
   // http
-  baseURL: 'Please enter the backend access address prefix.', // This url must end with "/". Example: 'http://192.168.1.1:6789/'
-  websocketURL: 'Please enter the WebSocket access address.', // Example: 'ws://192.168.1.1:6789/api/v1/ws'
+  baseURL: 'http://localhost:6789/', // This url must end with "/". Example: 'http://192.168.1.1:6789/'
+  websocketURL: 'ws://localhost:6789/api/v1/ws', // Example: 'ws://192.168.1.1:6789/api/v1/ws'
 
   // livestreaming
   // RTMP  Note: This IP is the address of the streaming server. If you want to see livestream on web page, you need to convert the RTMP stream to WebRTC stream.
