@@ -1,13 +1,13 @@
 export const CURRENT_CONFIG = {
 
   // license
-  appId: 'Please enter the app id.', // You need to go to the development website to apply.
-  appKey: 'Please enter the app key.', // You need to go to the development website to apply.
-  appLicense: 'Please enter the app license.', // You need to go to the development website to apply.
+  appId: import.meta.env.VITE_APP_ID || 'Please enter the app id.', // You need to go to the development website to apply.
+  appKey: import.meta.env.VITE_APP_KEY || 'Please enter the app key.', // You need to go to the development website to apply.
+  appLicense: import.meta.env.VITE_APP_LICENSE || 'Please enter the app license.', // You need to go to the development website to apply.
 
   // http
-  baseURL: 'http://localhost:6789/', // This url must end with "/". Example: 'http://192.168.1.1:6789/'
-  websocketURL: 'ws://localhost:6789/api/v1/ws', // Example: 'ws://192.168.1.1:6789/api/v1/ws'
+  baseURL: import.meta.env.VITE_BASE_URL || 'http://localhost:6789/', // This url must end with "/". Example: 'http://192.168.1.1:6789/'
+  websocketURL: import.meta.env.VITE_WEBSOCKET_URL || 'ws://localhost:6789/api/v1/ws', // Example: 'ws://192.168.1.1:6789/api/v1/ws'
 
   // livestreaming
   // RTMP  Note: This IP is the address of the streaming server. If you want to see livestream on web page, you need to convert the RTMP stream to WebRTC stream.
@@ -31,6 +31,6 @@ export const CURRENT_CONFIG = {
 
   // map
   // You can apply on the AMap website.
-  amapKey: 'Please enter the amap key.',
+  amapKey: import.meta.env.VITE_AMAP_KEY || '1e68c65b8600e14045e1af2b716c0ece', // 请替换为您的高德地图 API Key
 
 }

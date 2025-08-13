@@ -14,7 +14,9 @@ export interface BindBody {
   device_sn: string,
   user_id: string,
   workspace_id: string,
-  domain?: string
+  domain?: number,
+  type?: number,
+  sub_type?: number
 }
 export interface HmsQueryBody {
   sns: string[],

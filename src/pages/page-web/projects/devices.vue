@@ -9,6 +9,14 @@
     </a-menu-item>
   </a-menu>
   <div class="device-table-wrap table flex-display flex-column">
+    <!-- 添加设备按钮 -->
+    <div class="mb20">
+      <a-button type="primary" @click="showAddDeviceModal">
+        <PlusOutlined />
+        添加设备
+      </a-button>
+    </div>
+
     <a-table :columns="columns" :data-source="data.device" :pagination="paginationProp" @change="refreshData" row-key="device_sn" :expandedRowKeys="expandRows"
     :row-selection="rowSelection" :rowClassName="rowClassName" :scroll="{ x: '100%', y: 600 }"
       :expandIcon="expandIcon" :loading="loading">
@@ -112,6 +120,47 @@
        v-model:visible="hmsVisible"
       :device="currentDevice">
     </DeviceHmsDrawer>
+
+    <!-- 添加设备模态框 -->
+    <a-modal
+      v-model:visible="addDeviceModalVisible"
+      title="添加设备"
+      @ok="handleAddDevice"
+      @cancel="addDeviceModalVisible = false"
+      :confirmLoading="addDeviceLoading"
+    >
+      <a-form :model="addDeviceForm" layout="vertical">
+        <a-form-item label="设备SN码" required>
+          <a-input
+            v-model:value="addDeviceForm.device_sn"
+            placeholder="请输入设备SN码"
+            :maxLength="32"
+          />
+        </a-form-item>
+        <a-form-item label="设备类型">
+          <a-select v-model:value="addDeviceForm.domain" placeholder="请选择设备类型">
+            <a-select-option :value="0">飞行器 (Aircraft)</a-select-option>
+            <a-select-option :value="1">机场 (Dock)</a-select-option>
+            <a-select-option :value="2">遥控器 (Remote Control)</a-select-option>
+            <a-select-option :value="3">负载 (Payload)</a-select-option>
+          </a-select>
+        </a-form-item>
+        <a-form-item label="设备子类型">
+          <a-select v-model:value="addDeviceForm.type" placeholder="请选择设备子类型">
+            <a-select-option :value="0">标准型</a-select-option>
+            <a-select-option :value="1">专业型</a-select-option>
+            <a-select-option :value="2">企业型</a-select-option>
+          </a-select>
+        </a-form-item>
+        <a-form-item label="设备子类型2">
+          <a-select v-model:value="addDeviceForm.subType" placeholder="请选择设备子类型2">
+            <a-select-option :value="0">标准型</a-select-option>
+            <a-select-option :value="1">专业型</a-select-option>
+            <a-select-option :value="2">企业型</a-select-option>
+          </a-select>
+        </a-form-item>
+      </a-form>
+    </a-modal>
   </div>
 </template>
 <script lang="ts" setup>
@@ -120,7 +169,7 @@ import { h, onMounted, reactive, ref, UnwrapRef } from 'vue'
 import { IPage } from '/@/api/http/type'
 import { BindBody, bindDevice, getBindingDevices, unbindDevice, updateDevice } from '/@/api/manage'
 import { EDeviceTypeName, ELocalStorageKey } from '/@/types'
-import { EditOutlined, CheckOutlined, CloseOutlined, DeleteOutlined, FileSearchOutlined, CloudServerOutlined } from '@ant-design/icons-vue'
+import { EditOutlined, CheckOutlined, CloseOutlined, DeleteOutlined, FileSearchOutlined, CloudServerOutlined, PlusOutlined } from '@ant-design/icons-vue'
 import { Device, DeviceFirmwareStatusEnum } from '/@/types/device'
 import DeviceFirmwareUpgrade from '/@/components/devices/device-upgrade/DeviceFirmwareUpgrade.vue'
 import DeviceFirmwareUpgradeModal from '/@/components/devices/device-upgrade/DeviceFirmwareUpgradeModal.vue'
@@ -138,6 +187,16 @@ interface DeviceData {
 const loading = ref(true)
 const deleteTip = ref<boolean>(false)
 const deleteSn = ref<string>()
+
+// 添加设备相关
+const addDeviceModalVisible = ref<boolean>(false)
+const addDeviceLoading = ref<boolean>(false)
+const addDeviceForm = reactive({
+  device_sn: '',
+  domain: 0,
+  type: 0,
+  subType: 0
+})
 const columns: ColumnProps[] = [
   { title: 'Model', dataIndex: 'device_name', width: 100, className: 'titleStyle' },
   { title: 'SN', dataIndex: 'device_sn', width: 100, className: 'titleStyle', ellipsis: true, slots: { customRender: 'sn' } },
@@ -375,6 +434,63 @@ const hmsVisible = ref<boolean>(false)
 function showHms (dock: Device) {
   hmsVisible.value = true
   currentDevice.value = dock
+}
+
+// 添加设备
+function showAddDeviceModal () {
+  addDeviceModalVisible.value = true
+}
+
+function handleAddDevice () {
+  if (!addDeviceForm.device_sn.trim()) {
+    notification.error({
+      message: '请输入设备SN码',
+      duration: 2
+    })
+    return
+  }
+
+  addDeviceLoading.value = true
+  const bindParam: BindBody = {
+    device_sn: addDeviceForm.device_sn.trim(),
+    user_id: localStorage.getItem(ELocalStorageKey.UserId) || '',
+    workspace_id: workspaceId,
+    domain: addDeviceForm.domain,
+    type: addDeviceForm.type,
+    sub_type: addDeviceForm.subType
+  }
+
+  bindDevice(bindParam).then(res => {
+    if (res.code !== 0) {
+      notification.error({
+        message: '添加设备失败',
+        description: res.message || '绑定失败',
+        duration: 2
+      })
+      return
+    }
+    notification.success({
+      message: '添加设备成功',
+      description: '设备已添加到工作空间',
+      duration: 2
+    })
+    addDeviceModalVisible.value = false
+    // 重置表单
+    addDeviceForm.device_sn = ''
+    addDeviceForm.domain = 0
+    addDeviceForm.type = 0
+    addDeviceForm.subType = 0
+    // 刷新设备列表
+    getDevices(current.value[0])
+  }).catch(err => {
+    notification.error({
+      message: '添加设备失败',
+      description: err.message || '网络错误',
+      duration: 2
+    })
+  }).finally(() => {
+    addDeviceLoading.value = false
+  })
 }
 
 onMounted(() => {
